@@ -1,0 +1,10 @@
+FROM php:7.2-fpm
+
+RUN apt-get update && docker-php-ext-install pdo_mysql bcmath
+
+COPY ./shedule/docker-entrypoint.sh /
+RUN chmod +x /docker-entrypoint.sh
+
+WORKDIR /var/www
+
+ENTRYPOINT /docker-entrypoint.sh

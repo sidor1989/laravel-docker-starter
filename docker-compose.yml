@@ -1,0 +1,80 @@
+version: '3'
+
+services:
+  nginx:
+    build:
+      context: ./docker
+      dockerfile: nginx.docker
+    volumes:
+      - ./:/var/www
+    ports:
+      - "80:80"
+    links:
+      - php-fpm
+  php-fpm:
+    build:
+      context: ./docker
+      dockerfile: php-fpm.docker
+    environment:
+      PHP_IDE_CONFIG: serverName=TaskManager
+    volumes:
+      - ./:/var/www
+    links:
+      - db
+      - redis
+  php-cli:
+    build:
+      context: ./docker
+      dockerfile: php-cli.docker
+    volumes:
+      - ./:/var/www
+    links:
+      - db
+      - redis
+    tty: true
+  db:
+    image: mysql:5.7
+    restart: always
+    environment:
+      - "MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}"
+      - "MYSQL_DATABASE=${DB_DATABASE}"
+      - "MYSQL_USER=${DB_USERNAME}"
+      - "MYSQL_PASSWORD=${DB_PASSWORD}"
+    volumes:
+      - db:/var/lib/mysql
+    ports:
+      - "33061:3306"
+  redis:
+    image: redis
+    hostname: redis
+  node:
+    build:
+      context: ./docker
+      dockerfile: node.docker
+    volumes:
+      - ./:/var/www
+    tty: true
+  sheduler:
+    build:
+      context: ./docker
+      dockerfile: sheduler.docker
+    volumes:
+      - ./:/var/www
+    entrypoint:
+      - /docker-entrypoint.sh
+    links:
+      - db
+    depends_on:
+      - php-fpm
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    links:
+      - db
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+    ports:
+      - "8081:80"
+volumes:
+  db:

@@ -1,0 +1,17 @@
+FROM php:7.4-fpm
+
+
+RUN apt-get update && apt-get install -y libmcrypt-dev && apt install -y iproute2 && apt-get install -y iputils-ping \
+    && docker-php-ext-install pdo_mysql bcmath \
+    && pecl install xdebug \
+    && rm -rf /tmp/pear \
+    && docker-php-ext-enable xdebug
+
+RUN mv $PHP_INI_DIR/php.ini-development $PHP_INI_DIR/php.ini
+
+COPY ./php/conf.d /usr/local/etc/php/conf.d
+
+WORKDIR /var/www
+
+COPY ./php/entrypoint.sh /usr/local/bin/docker-php-entrypoint
+RUN chmod +x /usr/local/bin/docker-php-entrypoint
